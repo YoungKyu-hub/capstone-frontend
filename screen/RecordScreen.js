@@ -1,66 +1,141 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import KboTitle from "../components/KboTitle";
+
+// ===== 디자인 색상 (RankingScreen과 동일) =====
+const COLORS = {
+    bg: "#181829",
+    card: "#222232",
+    iconCircle: "#2C2C3E",
+    text: "#FFFFFF",
+    subText: "#C4C4C4",
+    accent: "#E8826B",
+};
+
+const MENUS = [
+    {
+        key: "Ranking",
+        icon: "🏆",
+        title: "팀 순위",
+        desc: "시즌별 팀 순위 확인",
+    },
+    {
+        key: "HeadToHead",
+        icon: "⚔️",
+        title: "상대전적 비교",
+        desc: "두 팀 전력 비교 분석",
+    },
+    {
+        key: "SeasonRecord",
+        icon: "📈",
+        title: "시즌 기록",
+        desc: "타자 / 투수 / 팀 기록",
+    },
+];
 
 export default function RecordScreen({ navigation }) {
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.safe} edges={["top"]}>
+            <ScrollView contentContainerStyle={styles.content}>
+                {/* 상단 바 */}
+                <View style={styles.topBar}>
+                    <KboTitle />
+                </View>
 
-            <Text style={styles.header}>📊 기록실</Text>
+                {/* 아이콘 + 제목 */}
+                <View style={styles.logoCircle}>
+                    <Text style={styles.logoEmoji}>📊</Text>
+                </View>
+                <Text style={styles.screenTitle}>기록실</Text>
+                <Text style={styles.screenSub}>순위 · 상대전적 · 시즌 기록</Text>
 
-            <TouchableOpacity
-                style={styles.card}
-                onPress={() => navigation.navigate("Ranking")}
-            >
-                <Text style={styles.title}>🏆 팀 순위</Text>
-                <Text style={styles.desc}>시즌별 팀 순위 확인</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={styles.card}
-                onPress={() => navigation.navigate("HeadToHead")}
-            >
-                <Text style={styles.title}>⚔️ 상대전적 비교</Text>
-                <Text style={styles.desc}>두 팀 전력 비교 분석</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-                style={styles.card}
-                onPress={() => navigation.navigate("SeasonRecord")}
-            >
-                <Text style={styles.title}>📈 시즌 기록</Text>
-                <Text style={styles.desc}>타자 / 투수 / 팀 기록</Text>
-            </TouchableOpacity>
-
-        </View>
+                {/* 메뉴 카드 */}
+                <View style={styles.menuList}>
+                    {MENUS.map((menu) => (
+                        <TouchableOpacity
+                            key={menu.key}
+                            style={styles.card}
+                            activeOpacity={0.8}
+                            onPress={() => navigation.navigate(menu.key)}
+                        >
+                            <View style={styles.iconCircle}>
+                                <Text style={styles.icon}>{menu.icon}</Text>
+                            </View>
+                            <View style={styles.cardText}>
+                                <Text style={styles.cardTitle}>{menu.title}</Text>
+                                <Text style={styles.cardDesc}>{menu.desc}</Text>
+                            </View>
+                            <Text style={styles.chevron}>›</Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#111",
-        padding: 20,
-        paddingTop: 70,
+    safe: { flex: 1, backgroundColor: COLORS.bg },
+    content: { paddingHorizontal: 20, paddingBottom: 40 },
+
+    // 상단 바
+    topBar: {
+        height: 36,
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 12,
     },
-    header: {
-        color: "white",
-        fontSize: 28,
-        fontWeight: "bold",
-        marginBottom: 20,
+
+    // 아이콘 + 제목
+    logoCircle: {
+        alignSelf: "center",
+        width: 88,
+        height: 88,
+        borderRadius: 44,
+        backgroundColor: COLORS.card,
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 24,
     },
+    logoEmoji: { fontSize: 40 },
+    screenTitle: {
+        color: COLORS.text,
+        fontSize: 24,
+        fontWeight: "700",
+        textAlign: "center",
+        marginTop: 16,
+    },
+    screenSub: {
+        color: COLORS.subText,
+        fontSize: 14,
+        textAlign: "center",
+        marginTop: 8,
+    },
+
+    // 메뉴 카드
+    menuList: { marginTop: 32 },
     card: {
-        backgroundColor: "#1E1E1E",
-        padding: 18,
-        borderRadius: 15,
-        marginBottom: 15,
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: COLORS.card,
+        borderRadius: 12,
+        paddingVertical: 16,
+        paddingHorizontal: 16,
+        marginBottom: 12,
     },
-    title: {
-        color: "white",
-        fontSize: 18,
-        fontWeight: "bold",
+    iconCircle: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: COLORS.iconCircle,
+        alignItems: "center",
+        justifyContent: "center",
+        marginRight: 14,
     },
-    desc: {
-        color: "#aaa",
-        marginTop: 5,
-    },
+    icon: { fontSize: 22 },
+    cardText: { flex: 1 },
+    cardTitle: { color: COLORS.text, fontSize: 16, fontWeight: "700" },
+    cardDesc: { color: COLORS.subText, fontSize: 13, marginTop: 4 },
+    chevron: { color: COLORS.accent, fontSize: 28, lineHeight: 30 },
 });

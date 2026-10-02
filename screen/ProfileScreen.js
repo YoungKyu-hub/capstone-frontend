@@ -1,17 +1,33 @@
 import React, { useContext, useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-} from "react-native";
+import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import KboTitle from "../components/KboTitle";
 import { UserContext } from "../context/UserContext";
 import { auth, db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 
+// ===== 디자인 색상 (RankingScreen과 동일) =====
+const COLORS = {
+  bg: "#181829",
+  card: "#222232",
+  chip: "#2C2C3E",
+  text: "#FFFFFF",
+  subText: "#C4C4C4",
+  divider: "#2C2C3E",
+  accent: "#E8826B",
+  rowDirect: "#1E2A4A",
+  rowMine: "#3A1E1E",
+};
+
+const achievements = [
+  { icon: "🏆", label: "첫 적중" },
+  { icon: "🔥", label: "5연속 적중" },
+  { icon: "⚾", label: "승률 60% 달성" },
+  { icon: "🎯", label: "예측 100회 참여" },
+];
+
 export default function ProfileScreen() {
-  const [nickname, setNickname] =
-    useState("로딩중...");
+  const [nickname, setNickname] = useState("로딩중...");
 
   const { point } = useContext(UserContext);
 
@@ -35,7 +51,6 @@ export default function ProfileScreen() {
 
         if (userSnap.exists()) {
           const data = userSnap.data();
-
           setNickname(data.nickname);
         }
       } catch (error) {
@@ -47,201 +62,206 @@ export default function ProfileScreen() {
   }, []);
 
   return (
-    <ScrollView style={styles.container}>
-      {/* 프로필 */}
-      <View style={styles.profileBox}>
-        <Text style={styles.name}>👤 {nickname}</Text>
-      </View>
+    <SafeAreaView style={styles.safe} edges={["top"]}>
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* 상단 바 */}
+        <View style={styles.topBar}>
+          <KboTitle />
+        </View>
 
-      {/* 포인트 */}
-      <View style={styles.card}>
-        <Text style={styles.title}>💰 포인트</Text>
-        <Text style={styles.bigValue}>{point}P</Text>
-      </View>
+        {/* 프로필 */}
+        <View style={styles.logoCircle}>
+          <Text style={styles.logoEmoji}>👤</Text>
+        </View>
+        <Text style={styles.name}>{nickname}</Text>
+        <View style={styles.pointPill}>
+          <Text style={styles.pointText}>{point}P</Text>
+        </View>
 
-      {/* 랭킹 */}
-      <View style={styles.card}>
-        <Text style={styles.title}>🏆 현재 순위</Text>
+        {/* 성공률 + 연속적중 + 순위 */}
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>68%</Text>
+            <Text style={styles.statTitle}>예측 성공률</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>7회</Text>
+            <Text style={styles.statTitle}>최고 연속 적중</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{myRank}위</Text>
+            <Text style={styles.statTitle}>현재 순위</Text>
+          </View>
+        </View>
 
-        <ScrollView
-          style={styles.rankContainer}
-          nestedScrollEnabled={true}
-        >
-          {rankingData.map((item) => (
-            <View
-              key={item.rank}
-              style={[
-                styles.rankRow,
-                item.rank === myRank &&
-                styles.myRankRow,
-              ]}
-            >
-              <Text style={styles.rankText}>
-                {item.rank}위
-              </Text>
+        {/* 랭킹 */}
+        <Text style={styles.sectionTitle}>유저 랭킹</Text>
+        <View style={styles.tableHeader}>
+          <Text style={[styles.headCell, styles.colRank]}>#</Text>
+          <Text style={[styles.headCell, styles.colName]}>닉네임</Text>
+          <Text style={[styles.headCell, styles.colScore]}>점수</Text>
+        </View>
 
-              <Text style={styles.nicknameText}>
-                {item.nickname}
-              </Text>
+        <ScrollView style={styles.rankContainer} nestedScrollEnabled={true}>
+          {rankingData.map((item) => {
+            const mine = item.rank === myRank;
+            return (
+              <View
+                key={item.rank}
+                style={[
+                  styles.rankRow,
+                  item.rank <= 3 && styles.rowTop,
+                  mine && styles.rowMine,
+                ]}
+              >
+                <Text style={[styles.cell, styles.colRank]}>{item.rank}</Text>
+                <Text style={[styles.cell, styles.colName]} numberOfLines={1}>
+                  {item.nickname}
+                  {mine && <Text style={styles.meTag}>  나</Text>}
+                </Text>
+                <Text style={[styles.scoreText, styles.colScore]}>{item.score}</Text>
+              </View>
+            );
+          })}
+        </ScrollView>
 
-              <Text style={styles.scoreText}>
-                {item.score}점
-              </Text>
+        {/* 업적 */}
+        <Text style={styles.sectionTitle}>획득 업적</Text>
+        <View style={styles.achieveGrid}>
+          {achievements.map((a) => (
+            <View key={a.label} style={styles.achieveCard}>
+              <View style={styles.achieveIcon}>
+                <Text style={{ fontSize: 20 }}>{a.icon}</Text>
+              </View>
+              <Text style={styles.achieveText}>{a.label}</Text>
             </View>
           ))}
-        </ScrollView>
-      </View>
-
-      {/* 성공률 + 연속적중 */}
-      <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statTitle}>
-            예측 성공률
-          </Text>
-          <Text style={styles.statValue}>
-            68%
-          </Text>
         </View>
-
-        <View style={styles.statCard}>
-          <Text style={styles.statTitle}>
-            최고 연속 적중
-          </Text>
-          <Text style={styles.statValue}>
-            7회
-          </Text>
-        </View>
-      </View>
-
-      {/* 업적 */}
-      <View style={styles.card}>
-        <Text style={styles.title}>
-          🏅 획득 업적
-        </Text>
-
-        <Text style={styles.achievement}>
-          🏆 첫 적중
-        </Text>
-
-        <Text style={styles.achievement}>
-          🔥 5연속 적중
-        </Text>
-
-        <Text style={styles.achievement}>
-          ⚾ 승률 60% 달성
-        </Text>
-
-        <Text style={styles.achievement}>
-          🎯 예측 100회 참여
-        </Text>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 15,
-    backgroundColor: "#f5f5f5",
-  },
+  safe: { flex: 1, backgroundColor: COLORS.bg },
+  content: { paddingHorizontal: 20, paddingBottom: 40 },
 
-  profileBox: {
-    backgroundColor: "white",
-    padding: 25,
-    borderRadius: 20,
+  // 상단 바
+  topBar: {
+    height: 36,
     alignItems: "center",
-    marginBottom: 15,
+    justifyContent: "center",
+    marginTop: 12,
   },
 
+  // 프로필
+  logoCircle: {
+    alignSelf: "center",
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: COLORS.card,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 24,
+  },
+  logoEmoji: { fontSize: 40 },
   name: {
-    fontSize: 22,
-    fontWeight: "bold",
-  },
-
-  card: {
-    backgroundColor: "white",
-    padding: 15,
-    borderRadius: 15,
-    marginBottom: 15,
-  },
-
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 15,
-  },
-
-  bigValue: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1E88E5",
+    color: COLORS.text,
+    fontSize: 24,
+    fontWeight: "700",
     textAlign: "center",
+    marginTop: 16,
   },
-
-  rankContainer: {
-    maxHeight: 250,
+  pointPill: {
+    alignSelf: "center",
+    height: 30,
+    paddingHorizontal: 16,
+    borderRadius: 15,
+    backgroundColor: COLORS.accent,
+    justifyContent: "center",
+    marginTop: 10,
   },
+  pointText: { color: COLORS.text, fontSize: 14, fontWeight: "700" },
 
-  rankRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-  },
-
-  myRankRow: {
-    backgroundColor: "#FFF3CD",
-    borderRadius: 10,
-  },
-
-  rankText: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-
-  scoreText: {
-    fontSize: 15,
-    fontWeight: "bold",
-    color: "#444",
-  },
-
-  nicknameText: {
-    flex: 1,
-    marginLeft: 15,
-    fontSize: 15,
-    fontWeight: "500",
-  },
-
+  // 통계 카드
   statsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 15,
+    marginTop: 24,
   },
-
   statCard: {
-    width: "48%",
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 15,
+    width: "31.5%",
+    backgroundColor: COLORS.card,
+    borderRadius: 12,
+    paddingVertical: 16,
     alignItems: "center",
   },
+  statValue: { color: COLORS.accent, fontSize: 20, fontWeight: "700" },
+  statTitle: { color: COLORS.subText, fontSize: 12, marginTop: 6 },
 
-  statTitle: {
-    fontSize: 14,
-    color: "#666",
+  // 섹션 제목
+  sectionTitle: {
+    color: COLORS.text,
+    fontSize: 16,
+    fontWeight: "700",
+    marginTop: 28,
   },
 
-  statValue: {
+  // 랭킹 표
+  tableHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingVertical: 12,
     marginTop: 8,
-    fontSize: 22,
-    fontWeight: "bold",
+    marginBottom: 12,
+    borderBottomWidth: 1,
+    borderColor: COLORS.divider,
   },
+  headCell: { color: COLORS.subText, fontSize: 12 },
+  rankContainer: { maxHeight: 300 },
+  rankRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    height: 46,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  rowTop: { backgroundColor: COLORS.rowDirect },
+  rowMine: { backgroundColor: COLORS.rowMine, borderWidth: 1, borderColor: COLORS.accent },
+  cell: { color: COLORS.text, fontSize: 14 },
+  scoreText: { color: COLORS.text, fontSize: 14, fontWeight: "700" },
+  meTag: { color: COLORS.accent, fontSize: 12, fontWeight: "700" },
+  colRank: { width: 32 },
+  colName: { flex: 1 },
+  colScore: { width: 60, textAlign: "right" },
 
-  achievement: {
-    fontSize: 15,
+  // 업적
+  achieveGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginTop: 12,
+  },
+  achieveCard: {
+    width: "48.5%",
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.card,
+    borderRadius: 12,
+    padding: 12,
     marginBottom: 10,
   },
+  achieveIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.chip,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  achieveText: { color: COLORS.text, fontSize: 13, fontWeight: "600", flexShrink: 1 },
 });

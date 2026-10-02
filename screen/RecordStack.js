@@ -14,25 +14,25 @@ export default function RecordStack() {
             <Stack.Screen
                 name="RecordHome"
                 component={RecordScreen}
-                options={{ title: "기록실" }}
+                options={{ headerShown: false }}
             />
 
             <Stack.Screen
                 name="Ranking"
                 component={RankingScreen}
-                options={{ title: "팀 순위" }}
+                options={{ headerShown: false }}
             />
 
             <Stack.Screen
                 name="HeadToHead"
                 component={HeadToHeadScreen}
-                options={{ title: "상대전적 비교" }}
+                options={{ headerShown: false }}
             />
 
             <Stack.Screen
                 name="SeasonRecord"
                 component={SeasonRecordScreen}
-                options={{ title: "시즌 기록" }}
+                options={{ headerShown: false }}
             />
         </Stack.Navigator>
     );

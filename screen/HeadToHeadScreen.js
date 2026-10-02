@@ -1,5 +1,33 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import KboTitle from "../components/KboTitle";
+
+// ===== 디자인 색상 (RankingScreen과 동일) =====
+const COLORS = {
+    bg: "#181829",
+    card: "#222232",
+    chip: "#2C2C3E",
+    text: "#FFFFFF",
+    subText: "#C4C4C4",
+    divider: "#2C2C3E",
+    accent: "#E8826B",
+    rowDirect: "#1E2A4A",
+};
+
+// 팀 대표 색상 (로고 대신 작은 원으로 표시)
+const TEAM_COLORS = {
+    LG: "#C30037",
+    두산: "#131230",
+    SSG: "#CE0E2D",
+    롯데: "#041E42",
+    삼성: "#074CA1",
+    KIA: "#EA0029",
+    한화: "#FF6600",
+    KT: "#000000",
+    NC: "#315288",
+    키움: "#570514",
+};
 
 const teams = ["LG", "두산", "SSG", "롯데", "삼성", "KIA", "NC", "한화", "키움", "KT"];
 
@@ -9,22 +37,53 @@ const getResult = (score1, score2) => {
     return "draw";
 };
 
-const getColor = (result, target) => {
-    if (result === "draw") return "white";
+// 팀 선택 칩 목록
+function TeamPicker({ label, selected, onSelect }) {
+    return (
+        <View style={styles.pickerBlock}>
+            <Text style={styles.pickerLabel}>{label}</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {teams.map((t) => {
+                    const active = selected === t;
+                    return (
+                        <TouchableOpacity
+                            key={t}
+                            onPress={() => onSelect(t)}
+                            style={[styles.chip, active && styles.chipActive]}
+                        >
+                            <View
+                                style={[
+                                    styles.teamDot,
+                                    { backgroundColor: TEAM_COLORS[t] || "#888" },
+                                ]}
+                            />
+                            <Text style={styles.chipText}>{t}</Text>
+                        </TouchableOpacity>
+                    );
+                })}
+            </ScrollView>
+        </View>
+    );
+}
 
-    if (result === "team1") {
-        return target === "team1" ? "red" : "blue";
-    }
+// 큰 팀 엠블럼 자리 (팀 색 원 + 팀 이름)
+function TeamBadge({ team }) {
+    return (
+        <View style={styles.badge}>
+            <View style={styles.badgeCircle}>
+                <View
+                    style={[
+                        styles.badgeInner,
+                        { backgroundColor: TEAM_COLORS[team] || "#888" },
+                    ]}
+                />
+            </View>
+            <Text style={styles.badgeName}>{team}</Text>
+        </View>
+    );
+}
 
-    if (result === "team2") {
-        return target === "team2" ? "red" : "blue";
-    }
-
-    return "white";
-};
-
-export default function HeadToHeadScreen() {
-
+export default function HeadToHeadScreen({ navigation }) {
     const [team1, setTeam1] = useState("LG");
     const [team2, setTeam2] = useState("두산");
     const [show, setShow] = useState(false);
@@ -39,135 +98,221 @@ export default function HeadToHeadScreen() {
 
     const team1Score = 5;
     const team2Score = 3;
-
     const result = getResult(team1Score, team2Score);
+    const winner = result === "team1" ? team1 : result === "team2" ? team2 : null;
 
-    const recentColor =
-        result === "draw"
-            ? "white"
-            : result === "team1"
-                ? "red"
-                : "blue";
+    const sameTeam = team1 === team2;
 
     return (
-        <ScrollView style={styles.container}>
-
-            <Text style={styles.title}>⚔️ 상대전적 비교</Text>
-
-            <Text style={styles.sub}>팀 1</Text>
-            <ScrollView horizontal>
-                {teams.map(t => (
+        <SafeAreaView style={styles.safe} edges={["top"]}>
+            <ScrollView contentContainerStyle={styles.content}>
+                {/* 상단 바 */}
+                <View style={styles.topBar}>
                     <TouchableOpacity
-                        key={t}
-                        onPress={() => setTeam1(t)}
-                        style={[styles.btn, team1 === t && styles.active]}
+                        onPress={() => navigation?.goBack()}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                     >
-                        <Text>{t}</Text>
+                        <Text style={styles.backArrow}>‹</Text>
                     </TouchableOpacity>
-                ))}
-            </ScrollView>
-
-            <Text style={styles.vs}>VS</Text>
-
-            <Text style={styles.sub}>팀 2</Text>
-            <ScrollView horizontal>
-                {teams.map(t => (
-                    <TouchableOpacity
-                        key={t}
-                        onPress={() => setTeam2(t)}
-                        style={[styles.btn, team2 === t && styles.active]}
-                    >
-                        <Text>{t}</Text>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
-
-            <TouchableOpacity
-                style={styles.compareBtn}
-                onPress={() => setShow(true)}
-            >
-                <Text style={{ fontWeight: "bold" }}>비교하기</Text>
-            </TouchableOpacity>
-
-            {show && (
-                <View>
-
-                    <View style={styles.headerRow}>
-                        <Text style={styles.team}>{team1}</Text>
-                        <Text style={styles.mid}>VS</Text>
-                        <Text style={styles.team}>{team2}</Text>
-                    </View>
-
-                    <View style={styles.recentBox}>
-                        <Text style={styles.recentTitle}>📌 최근 맞대결</Text>
-
-                        <Text style={[styles.recentText, { color: recentColor }]}>
-                            - 2026.05.12 {team1} 5 - 3 {team2} ({team1} 승)
-                        </Text>
-                    </View>
-
-                    {data.map((d, i) => (
-                        <View key={i} style={styles.row}>
-                            <Text style={styles.left}>{d.left}</Text>
-                            <Text style={styles.label}>{d.label}</Text>
-                            <Text style={styles.right}>{d.right}</Text>
-                        </View>
-                    ))}
-
+                    <KboTitle />
+                    <View style={{ width: 24 }} />
                 </View>
-            )}
 
-        </ScrollView>
+                {/* 아이콘 + 제목 */}
+                <View style={styles.logoCircle}>
+                    <Text style={styles.logoEmoji}>⚔️</Text>
+                </View>
+                <Text style={styles.screenTitle}>상대전적 비교</Text>
+
+                {/* 팀 선택 */}
+                <TeamPicker label="팀 1" selected={team1} onSelect={setTeam1} />
+                <TeamPicker label="팀 2" selected={team2} onSelect={setTeam2} />
+
+                <TouchableOpacity
+                    style={[styles.compareBtn, sameTeam && styles.compareBtnDisabled]}
+                    onPress={() => setShow(true)}
+                    disabled={sameTeam}
+                    activeOpacity={0.8}
+                >
+                    <Text style={styles.compareText}>
+                        {sameTeam ? "서로 다른 팀을 선택하세요" : "비교하기"}
+                    </Text>
+                </TouchableOpacity>
+
+                {show && !sameTeam && (
+                    <View>
+                        {/* 팀 vs 팀 */}
+                        <View style={styles.vsRow}>
+                            <TeamBadge team={team1} />
+                            <Text style={styles.vsText}>VS</Text>
+                            <TeamBadge team={team2} />
+                        </View>
+
+                        {/* 최근 맞대결 */}
+                        <View style={styles.recentBox}>
+                            <Text style={styles.recentTitle}>최근 맞대결</Text>
+                            <View style={styles.recentRow}>
+                                <Text style={styles.recentDate}>2026.05.12</Text>
+                                <Text style={styles.recentScore}>
+                                    {team1}{" "}
+                                    <Text style={result === "team1" && styles.winScore}>
+                                        {team1Score}
+                                    </Text>
+                                    {"  -  "}
+                                    <Text style={result === "team2" && styles.winScore}>
+                                        {team2Score}
+                                    </Text>{" "}
+                                    {team2}
+                                </Text>
+                                <Text style={styles.recentResult}>
+                                    {winner ? `${winner} 승` : "무승부"}
+                                </Text>
+                            </View>
+                        </View>
+
+                        {/* 비교 표 */}
+                        <View style={styles.tableHeader}>
+                            <Text style={[styles.headCell, styles.side]}>{team1}</Text>
+                            <Text style={[styles.headCell, styles.label]}>항목</Text>
+                            <Text style={[styles.headCell, styles.side]}>{team2}</Text>
+                        </View>
+
+                        {data.map((d, i) => (
+                            <View key={i} style={[styles.row, i === 0 && styles.rowHighlight]}>
+                                <Text style={[styles.cell, styles.side]}>{d.left}</Text>
+                                <Text style={[styles.labelText, styles.label]}>{d.label}</Text>
+                                <Text style={[styles.cell, styles.side]}>{d.right}</Text>
+                            </View>
+                        ))}
+                    </View>
+                )}
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: "#111", padding: 15 },
-    title: { color: "white", fontSize: 24, fontWeight: "bold", marginBottom: 20 },
-    sub: { color: "#aaa", marginTop: 10, marginBottom: 5 },
-    btn: { backgroundColor: "#333", padding: 10, marginRight: 8, borderRadius: 10 },
-    active: { backgroundColor: "#FFD700" },
-    vs: { color: "white", textAlign: "center", marginVertical: 10, fontSize: 18 },
-    compareBtn: {
-        backgroundColor: "#FFD700",
-        padding: 15,
-        marginVertical: 15,
-        borderRadius: 10,
-        alignItems: "center"
-    },
+    safe: { flex: 1, backgroundColor: COLORS.bg },
+    content: { paddingHorizontal: 20, paddingBottom: 40 },
 
-    headerRow: {
+    // 상단 바
+    topBar: {
         flexDirection: "row",
+        alignItems: "center",
         justifyContent: "space-between",
-        marginBottom: 20
+        marginTop: 12,
     },
-    team: { color: "white", fontSize: 20, fontWeight: "bold" },
-    mid: { color: "#FFD700", fontSize: 18 },
+    backArrow: { color: COLORS.text, fontSize: 34, lineHeight: 36, width: 24 },
 
+    // 아이콘 + 제목
+    logoCircle: {
+        alignSelf: "center",
+        width: 88,
+        height: 88,
+        borderRadius: 44,
+        backgroundColor: COLORS.card,
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 24,
+    },
+    logoEmoji: { fontSize: 40 },
+    screenTitle: {
+        color: COLORS.text,
+        fontSize: 24,
+        fontWeight: "700",
+        textAlign: "center",
+        marginTop: 16,
+    },
+
+    // 팀 선택
+    pickerBlock: { marginTop: 24 },
+    pickerLabel: { color: COLORS.subText, fontSize: 13, marginBottom: 10 },
+    chip: {
+        flexDirection: "row",
+        alignItems: "center",
+        height: 36,
+        paddingHorizontal: 14,
+        borderRadius: 18,
+        backgroundColor: COLORS.chip,
+        marginRight: 8,
+    },
+    chipActive: { backgroundColor: COLORS.accent },
+    chipText: { color: COLORS.text, fontSize: 14, fontWeight: "700" },
+    teamDot: { width: 10, height: 10, borderRadius: 5, marginRight: 6 },
+
+    compareBtn: {
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: COLORS.accent,
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 28,
+    },
+    compareBtnDisabled: { backgroundColor: COLORS.chip },
+    compareText: { color: COLORS.text, fontSize: 15, fontWeight: "700" },
+
+    // 팀 vs 팀
+    vsRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-around",
+        marginTop: 32,
+    },
+    badge: { alignItems: "center", width: 100 },
+    badgeCircle: {
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        backgroundColor: COLORS.card,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    badgeInner: { width: 32, height: 32, borderRadius: 16 },
+    badgeName: { color: COLORS.text, fontSize: 18, fontWeight: "700", marginTop: 10 },
+    vsText: { color: COLORS.accent, fontSize: 20, fontWeight: "700" },
+
+    // 최근 맞대결
+    recentBox: {
+        backgroundColor: COLORS.card,
+        borderRadius: 12,
+        padding: 16,
+        marginTop: 24,
+    },
+    recentTitle: { color: COLORS.subText, fontSize: 13, marginBottom: 10 },
+    recentRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+    },
+    recentDate: { color: COLORS.subText, fontSize: 12 },
+    recentScore: { color: COLORS.text, fontSize: 15, fontWeight: "700" },
+    winScore: { color: COLORS.accent },
+    recentResult: { color: COLORS.accent, fontSize: 13, fontWeight: "700" },
+
+    // 비교 표
+    tableHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        paddingHorizontal: 10,
+        paddingVertical: 12,
+        marginTop: 20,
+        marginBottom: 12,
+        borderBottomWidth: 1,
+        borderColor: COLORS.divider,
+    },
+    headCell: { color: COLORS.subText, fontSize: 12, textAlign: "center" },
     row: {
         flexDirection: "row",
-        justifyContent: "space-between",
-        padding: 12,
-        backgroundColor: "#1E1E1E",
+        alignItems: "center",
+        height: 46,
+        paddingHorizontal: 10,
+        borderRadius: 8,
         marginBottom: 8,
-        borderRadius: 10
+        backgroundColor: COLORS.card,
     },
-    left: { color: "white", width: 70, textAlign: "center" },
-    right: { color: "white", width: 70, textAlign: "center" },
-    label: { color: "#aaa", flex: 1, textAlign: "center" },
-
-    recentBox: {
-        backgroundColor: "#1E1E1E",
-        padding: 12,
-        borderRadius: 10,
-        marginBottom: 8
-    },
-    recentTitle: {
-        color: "white",
-        fontWeight: "bold",
-        marginBottom: 6
-    },
-    recentText: {
-        fontSize: 13
-    }
+    rowHighlight: { backgroundColor: COLORS.rowDirect },
+    cell: { color: COLORS.text, fontSize: 14, textAlign: "center" },
+    labelText: { color: COLORS.subText, fontSize: 13, textAlign: "center" },
+    side: { width: 80 },
+    label: { flex: 1 },
 });

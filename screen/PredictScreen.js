@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-    SafeAreaView,
     View,
     Text,
     Modal,
@@ -10,6 +9,34 @@ import {
     ScrollView,
     StatusBar,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import KboTitle from "../components/KboTitle";
+
+// ===== 디자인 색상 (RankingScreen과 동일) =====
+const COLORS = {
+    bg: "#181829",
+    card: "#222232",
+    chip: "#2C2C3E",
+    text: "#FFFFFF",
+    subText: "#C4C4C4",
+    divider: "#2C2C3E",
+    accent: "#E8826B",
+    rowDirect: "#1E2A4A",
+};
+
+// 팀 대표 색상 (로고 대신 원으로 표시)
+const TEAM_COLORS = {
+    LG: "#C30037",
+    두산: "#131230",
+    SSG: "#CE0E2D",
+    롯데: "#041E42",
+    삼성: "#074CA1",
+    KIA: "#EA0029",
+    한화: "#FF6600",
+    KT: "#000000",
+    NC: "#315288",
+    키움: "#570514",
+};
 
 const dateList = ["4/13", "4/14", "4/15", "4/16"];
 const getDayOfWeek = (dateStr) => {
@@ -22,73 +49,40 @@ const getDayOfWeek = (dateStr) => {
 
 const gameData = {
     "4/13": [
-        {
-            id: "1",
-            home: "KIA",
-            away: "LG",
-            time: "19:00",
-            aiComment: "KIA의 최근 타선 흐름이 좋습니다.",
-        },
-        {
-            id: "2",
-            home: "두산",
-            away: "롯데",
-            time: "18:30",
-            aiComment: "롯데의 원정 경기 승률이 높습니다.",
-        },
+        { id: "1", home: "KIA", away: "LG", time: "19:00", aiComment: "KIA의 최근 타선 흐름이 좋습니다." },
+        { id: "2", home: "두산", away: "롯데", time: "18:30", aiComment: "롯데의 원정 경기 승률이 높습니다." },
     ],
-
     "4/14": [
-        {
-            id: "3",
-            home: "SSG",
-            away: "NC",
-            time: "18:30",
-            aiComment: "최근 SSG 불펜의 안정감이 좋습니다.",
-        },
-        {
-            id: "2",
-            home: "두산",
-            away: "롯데",
-            time: "18:30",
-            aiComment: "롯데의 원정 경기 승률이 높습니다.",
-        },
+        { id: "3", home: "SSG", away: "NC", time: "18:30", aiComment: "최근 SSG 불펜의 안정감이 좋습니다." },
+        { id: "2", home: "두산", away: "롯데", time: "18:30", aiComment: "롯데의 원정 경기 승률이 높습니다." },
     ],
-
     "4/15": [
-        {
-            id: "3",
-            home: "SSG",
-            away: "NC",
-            time: "18:30",
-            aiComment: "최근 SSG 불펜의 안정감이 좋습니다.",
-        },
-        {
-            id: "4",
-            home: "한화",
-            away: "KT",
-            time: "18:30",
-            aiComment: "한화의 홈 경기 흐름이 좋습니다.",
-        },
+        { id: "3", home: "SSG", away: "NC", time: "18:30", aiComment: "최근 SSG 불펜의 안정감이 좋습니다." },
+        { id: "4", home: "한화", away: "KT", time: "18:30", aiComment: "한화의 홈 경기 흐름이 좋습니다." },
     ],
-
     "4/16": [
-        {
-            id: "4",
-            home: "한화",
-            away: "KT",
-            time: "18:30",
-            aiComment: "한화의 홈 경기 흐름이 좋습니다.",
-        },
-        {
-            id: "5",
-            home: "삼성",
-            away: "키움",
-            time: "17:00",
-            aiComment: "삼성의 최근 득점력이 상승세입니다.",
-        },
+        { id: "4", home: "한화", away: "KT", time: "18:30", aiComment: "한화의 홈 경기 흐름이 좋습니다." },
+        { id: "5", home: "삼성", away: "키움", time: "17:00", aiComment: "삼성의 최근 득점력이 상승세입니다." },
     ],
 };
+
+// 팀 원 + 이름 + 홈/원정 표시
+function TeamBadge({ team, side }) {
+    return (
+        <View style={styles.badge}>
+            <View style={styles.badgeCircle}>
+                <View
+                    style={[
+                        styles.badgeInner,
+                        { backgroundColor: TEAM_COLORS[team] || "#888" },
+                    ]}
+                />
+            </View>
+            <Text style={styles.badgeName}>{team}</Text>
+            <Text style={styles.badgeSide}>{side}</Text>
+        </View>
+    );
+}
 
 export default function PredictScreen() {
     const [selectedDate, setSelectedDate] = useState("4/13");
@@ -97,16 +91,21 @@ export default function PredictScreen() {
     const [selectedMatch, setSelectedMatch] = useState(null);
 
     const renderGameCard = ({ item }) => {
+        // 날짜 + 경기 id로 예측 저장 (다른 날짜의 같은 id와 섞이지 않게)
+        const predictKey = `${selectedDate}-${item.id}`;
+        const picked = selectedPredict[predictKey];
+
+        const options = [
+            { value: item.home, label: `${item.home} 승` },
+            { value: "draw", label: "무승부" },
+            { value: item.away, label: `${item.away} 승` },
+        ];
+
         return (
             <View style={styles.card}>
-
-                {/* 상단 영역 */}
+                {/* 상단: 시간 + 전력분석 */}
                 <View style={styles.topRow}>
-
-                    <Text style={styles.matchText}>
-                        {item.home} VS {item.away}
-                    </Text>
-
+                    <Text style={styles.timeText}>🕒 {item.time}</Text>
                     <TouchableOpacity
                         style={styles.analysisButton}
                         onPress={() => {
@@ -114,161 +113,138 @@ export default function PredictScreen() {
                             setModalVisible(true);
                         }}
                     >
-                        <Text style={styles.analysisButtonText}>
-                            전력분석
-                        </Text>
+                        <Text style={styles.analysisButtonText}>전력분석</Text>
                     </TouchableOpacity>
-
                 </View>
 
-                <Text style={styles.timeText}>
-                    경기 시간 : {item.time}
-                </Text>
+                {/* 팀 vs 팀 */}
+                <View style={styles.vsRow}>
+                    <TeamBadge team={item.home} side="홈" />
+                    <Text style={styles.vsText}>VS</Text>
+                    <TeamBadge team={item.away} side="원정" />
+                </View>
 
+                {/* 예측 버튼 */}
                 <View style={styles.buttonContainer}>
-
-                    <TouchableOpacity
-                        style={[
-                            styles.predictButton,
-                            selectedPredict[item.id] === item.home &&
-                            styles.selected,
-                        ]}
-                        onPress={() =>
-                            setSelectedPredict({
-                                ...selectedPredict,
-                                [item.id]: item.home,
-                            })
-                        }
-                    >
-                        <Text style={styles.buttonText}>
-                            {item.home} 승
-                        </Text>
-                    </TouchableOpacity>
-
-                    {/* ⚖️ 무승부 추가 */}
-                    <TouchableOpacity
-                        style={[
-                            styles.predictButton,
-                            selectedPredict[item.id] === "draw" &&
-                            styles.selected,
-                        ]}
-                        onPress={() =>
-                            setSelectedPredict({
-                                ...selectedPredict,
-                                [item.id]: "draw",
-                            })
-                        }
-                    >
-                        <Text style={styles.buttonText}>
-                            무승부
-                        </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[
-                            styles.predictButton,
-                            selectedPredict[item.id] === item.away &&
-                            styles.selected,
-                        ]}
-                        onPress={() =>
-                            setSelectedPredict({
-                                ...selectedPredict,
-                                [item.id]: item.away,
-                            })
-                        }
-                    >
-                        <Text style={styles.buttonText}>
-                            {item.away} 승
-                        </Text>
-                    </TouchableOpacity>
-
+                    {options.map((opt) => {
+                        const active = picked === opt.value;
+                        return (
+                            <TouchableOpacity
+                                key={opt.value}
+                                style={[styles.predictButton, active && styles.selected]}
+                                activeOpacity={0.8}
+                                onPress={() =>
+                                    setSelectedPredict({
+                                        ...selectedPredict,
+                                        [predictKey]: opt.value,
+                                    })
+                                }
+                            >
+                                <Text style={styles.buttonText}>{opt.label}</Text>
+                            </TouchableOpacity>
+                        );
+                    })}
                 </View>
 
+                {/* AI 코멘트 */}
                 <View style={styles.aiBox}>
-                    <Text style={styles.aiTitle}>
-                        AI 참고 멘트
-                    </Text>
-
-                    <Text style={styles.aiComment}>
-                        {item.aiComment}
-                    </Text>
+                    <Text style={styles.aiTitle}>AI 참고 멘트</Text>
+                    <Text style={styles.aiComment}>{item.aiComment}</Text>
                 </View>
             </View>
         );
     };
 
-    return (
-        <SafeAreaView style={styles.container}>
-            <StatusBar barStyle="light-content" />
+    const ListHeader = (
+        <View>
+            {/* 상단 바 */}
+            <View style={styles.topBar}>
+                <KboTitle />
+            </View>
 
-            <Text style={styles.header}>승부예측</Text>
+            {/* 아이콘 + 제목 */}
+            <View style={styles.logoCircle}>
+                <Text style={styles.logoEmoji}>⚾</Text>
+            </View>
+            <Text style={styles.screenTitle}>승부예측</Text>
 
+            {/* 날짜 선택 */}
             <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.dateContainer}
             >
-                {dateList.map((date) => (
-                    <TouchableOpacity
-                        key={date}
-                        style={[
-                            styles.dateButton,
-                            selectedDate === date && styles.selectedDate,
-                        ]}
-                        onPress={() => setSelectedDate(date)}
-                    >
-                        <Text style={styles.dateText}>
-                            {date} ({getDayOfWeek(date)})
-                        </Text>
-                    </TouchableOpacity>
-                ))}
+                {dateList.map((date) => {
+                    const active = selectedDate === date;
+                    return (
+                        <TouchableOpacity
+                            key={date}
+                            style={[styles.dateButton, active && styles.selectedDate]}
+                            onPress={() => setSelectedDate(date)}
+                        >
+                            <Text style={styles.dateText}>
+                                {date} ({getDayOfWeek(date)})
+                            </Text>
+                        </TouchableOpacity>
+                    );
+                })}
             </ScrollView>
+        </View>
+    );
+
+    return (
+        <SafeAreaView style={styles.safe} edges={["top"]}>
+            <StatusBar barStyle="light-content" />
 
             <FlatList
                 data={gameData[selectedDate] || []}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => `${selectedDate}-${item.id}`}
                 renderItem={renderGameCard}
+                ListHeaderComponent={ListHeader}
+                ListEmptyComponent={
+                    <Text style={styles.empty}>예정된 경기가 없습니다.</Text>
+                }
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={{
-                    paddingBottom: 30,
-                }}
+                contentContainerStyle={styles.content}
             />
+
+            {/* 전력 분석 팝업 */}
             <Modal
                 visible={modalVisible}
                 transparent={true}
                 animationType="fade"
+                onRequestClose={() => setModalVisible(false)}
             >
-
                 <View style={styles.modalOverlay}>
-
                     <View style={styles.modalContainer}>
-
-                        <Text style={styles.modalTitle}>
-                            전력 분석
-                        </Text>
+                        <Text style={styles.modalTitle}>전력 분석</Text>
 
                         {selectedMatch && (
                             <>
-                                <Text style={styles.modalMatch}>
-                                    {selectedMatch.home} VS {selectedMatch.away}
-                                </Text>
+                                <View style={styles.modalVsRow}>
+                                    <TeamBadge team={selectedMatch.home} side="홈" />
+                                    <Text style={styles.vsText}>VS</Text>
+                                    <TeamBadge team={selectedMatch.away} side="원정" />
+                                </View>
 
-                                <Text style={styles.modalText}>
-                                    최근 경기력과 팀 흐름을 분석한 결과
-                                    {selectedMatch.home}의 우세가 예상됩니다.
-                                </Text>
+                                <View style={styles.modalBox}>
+                                    <Text style={styles.modalText}>
+                                        최근 경기력과 팀 흐름을 분석한 결과{" "}
+                                        <Text style={styles.modalStrong}>
+                                            {selectedMatch.home}
+                                        </Text>
+                                        의 우세가 예상됩니다.
+                                    </Text>
+                                </View>
 
-                                <Text style={styles.modalText}>
-                                    • 최근 승률 우세
-                                </Text>
-
-                                <Text style={styles.modalText}>
-                                    • 타선 흐름 안정적
-                                </Text>
-
-                                <Text style={styles.modalText}>
-                                    • 홈 경기 이점 존재
-                                </Text>
+                                {["최근 승률 우세", "타선 흐름 안정적", "홈 경기 이점 존재"].map(
+                                    (point) => (
+                                        <View key={point} style={styles.pointRow}>
+                                            <View style={styles.pointDot} />
+                                            <Text style={styles.pointText}>{point}</Text>
+                                        </View>
+                                    )
+                                )}
                             </>
                         )}
 
@@ -276,192 +252,191 @@ export default function PredictScreen() {
                             style={styles.closeButton}
                             onPress={() => setModalVisible(false)}
                         >
-                            <Text style={styles.closeButtonText}>
-                                닫기
-                            </Text>
+                            <Text style={styles.closeButtonText}>닫기</Text>
                         </TouchableOpacity>
-
                     </View>
-
                 </View>
-
             </Modal>
         </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#111",
-        paddingTop: 20,
-        paddingHorizontal: 16,
+    safe: { flex: 1, backgroundColor: COLORS.bg },
+    content: { paddingHorizontal: 20, paddingBottom: 30 },
+
+    // 상단 바
+    topBar: {
+        height: 36,
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 12,
     },
 
-    header: {
-        color: "white",
-        fontSize: 38,
-        fontWeight: "bold",
-        marginTop: 40,
-        marginBottom: 20,
+    // 아이콘 + 제목
+    logoCircle: {
+        alignSelf: "center",
+        width: 88,
+        height: 88,
+        borderRadius: 44,
+        backgroundColor: COLORS.card,
+        alignItems: "center",
+        justifyContent: "center",
+        marginTop: 24,
+    },
+    logoEmoji: { fontSize: 40 },
+    screenTitle: {
+        color: COLORS.text,
+        fontSize: 24,
+        fontWeight: "700",
+        textAlign: "center",
+        marginTop: 16,
     },
 
-    dateContainer: {
-        paddingLeft: 10,
-        paddingRight: 10,
-        paddingBottom: 30,
-    },
-
+    // 날짜 선택
+    dateContainer: { paddingTop: 24, paddingBottom: 8 },
     dateButton: {
-        width: 85,
-        height: 45,
-        backgroundColor: "#333",
-        borderRadius: 14,
+        height: 36,
+        paddingHorizontal: 16,
+        borderRadius: 18,
+        backgroundColor: COLORS.chip,
         justifyContent: "center",
         alignItems: "center",
-        marginRight: 10,
+        marginRight: 8,
     },
+    selectedDate: { backgroundColor: COLORS.accent },
+    dateText: { color: COLORS.text, fontSize: 14, fontWeight: "700" },
 
-    selectedDate: {
-        backgroundColor: "#FFD700",
-    },
-
-    dateText: {
-        color: "white",
-        fontSize: 15,
-        fontWeight: "bold",
-    },
-
+    // 경기 카드
     card: {
-        backgroundColor: "#1E1E1E",
-        borderRadius: 24,
-        padding: 20,
-        marginTop: 12,
-        marginBottom: 20,
+        backgroundColor: COLORS.card,
+        borderRadius: 16,
+        padding: 18,
+        marginTop: 16,
     },
-
     topRow: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 10,
     },
-
-    matchText: {
-        color: "white",
-        fontSize: 24,
-        fontWeight: "bold",
-    },
-
+    timeText: { color: COLORS.subText, fontSize: 13 },
     analysisButton: {
-        backgroundColor: "#FFD700",
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 10,
+        height: 28,
+        paddingHorizontal: 12,
+        borderRadius: 14,
+        borderWidth: 1,
+        borderColor: COLORS.accent,
+        justifyContent: "center",
     },
+    analysisButtonText: { color: COLORS.accent, fontSize: 12, fontWeight: "700" },
 
-    analysisButtonText: {
-        color: "#111",
-        fontSize: 12,
-        fontWeight: "bold",
-    },
-
-    timeText: {
-        color: "#AAA",
-        fontSize: 15,
-        marginBottom: 24,
-    },
-
-    buttonContainer: {
+    // 팀 vs 팀
+    vsRow: {
         flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-around",
+        marginTop: 16,
         marginBottom: 20,
     },
+    badge: { alignItems: "center", width: 90 },
+    badgeCircle: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: COLORS.chip,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    badgeInner: { width: 26, height: 26, borderRadius: 13 },
+    badgeName: { color: COLORS.text, fontSize: 17, fontWeight: "700", marginTop: 8 },
+    badgeSide: { color: COLORS.subText, fontSize: 11, marginTop: 2 },
+    vsText: { color: COLORS.accent, fontSize: 18, fontWeight: "700" },
 
+    // 예측 버튼
+    buttonContainer: { flexDirection: "row", marginHorizontal: -4, marginBottom: 16 },
     predictButton: {
         flex: 1,
-        backgroundColor: "#333",
-        paddingVertical: 16,
-        borderRadius: 14,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: COLORS.chip,
         alignItems: "center",
-        marginHorizontal: 5,
+        justifyContent: "center",
+        marginHorizontal: 4,
     },
+    selected: { backgroundColor: COLORS.accent },
+    buttonText: { color: COLORS.text, fontSize: 14, fontWeight: "700" },
 
-    selected: {
-        backgroundColor: "#00C896",
-    },
-
-    buttonText: {
-        color: "white",
-        fontSize: 17,
-        fontWeight: "bold",
-    },
-
+    // AI 코멘트
     aiBox: {
-        backgroundColor: "#2A2A2A",
-        borderRadius: 16,
-        padding: 16,
+        backgroundColor: COLORS.rowDirect,
+        borderRadius: 12,
+        padding: 14,
     },
+    aiTitle: { color: COLORS.accent, fontSize: 13, fontWeight: "700", marginBottom: 6 },
+    aiComment: { color: COLORS.text, fontSize: 13, lineHeight: 20 },
 
-    aiTitle: {
-        color: "#FFD700",
-        fontSize: 15,
-        fontWeight: "bold",
-        marginBottom: 8,
-    },
+    empty: { color: COLORS.subText, textAlign: "center", marginTop: 40 },
 
-    aiComment: {
-        color: "white",
-        fontSize: 13,
-        lineHeight: 24,
-    },
+    // 전력 분석 팝업
     modalOverlay: {
         flex: 1,
         backgroundColor: "rgba(0,0,0,0.7)",
         justifyContent: "center",
         alignItems: "center",
     },
-
     modalContainer: {
-        width: "85%",
-        backgroundColor: "#1E1E1E",
+        width: "88%",
+        backgroundColor: COLORS.bg,
         borderRadius: 20,
-        padding: 25,
+        borderWidth: 1,
+        borderColor: COLORS.divider,
+        padding: 22,
     },
-
     modalTitle: {
-        color: "#FFD700",
-        fontSize: 24,
-        fontWeight: "bold",
-        marginBottom: 20,
+        color: COLORS.text,
+        fontSize: 20,
+        fontWeight: "700",
         textAlign: "center",
     },
-
-    modalMatch: {
-        color: "white",
-        fontSize: 22,
-        fontWeight: "bold",
-        marginBottom: 20,
-        textAlign: "center",
-    },
-
-    modalText: {
-        color: "white",
-        fontSize: 16,
-        marginBottom: 12,
-        lineHeight: 24,
-    },
-
-    closeButton: {
-        marginTop: 20,
-        backgroundColor: "#FFD700",
-        paddingVertical: 12,
-        borderRadius: 12,
+    modalVsRow: {
+        flexDirection: "row",
         alignItems: "center",
+        justifyContent: "space-around",
+        marginTop: 18,
+        marginBottom: 18,
     },
-
-    closeButtonText: {
-        color: "#111",
-        fontWeight: "bold",
-        fontSize: 16,
+    modalBox: {
+        backgroundColor: COLORS.rowDirect,
+        borderRadius: 12,
+        padding: 14,
+        marginBottom: 12,
     },
+    modalText: { color: COLORS.text, fontSize: 14, lineHeight: 22 },
+    modalStrong: { color: COLORS.accent, fontWeight: "700" },
+    pointRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: COLORS.card,
+        borderRadius: 8,
+        height: 40,
+        paddingHorizontal: 12,
+        marginBottom: 8,
+    },
+    pointDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: COLORS.accent,
+        marginRight: 10,
+    },
+    pointText: { color: COLORS.text, fontSize: 14 },
+    closeButton: {
+        marginTop: 12,
+        height: 46,
+        borderRadius: 23,
+        backgroundColor: COLORS.accent,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    closeButtonText: { color: COLORS.text, fontWeight: "700", fontSize: 15 },
 });
