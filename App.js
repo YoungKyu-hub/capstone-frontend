@@ -25,7 +25,7 @@ export default function App() {
           <Stack.Screen
             name="Signup"
             component={SignupScreen}
-            options={{ title: "회원가입" }}
+            options={{ headerShown: false }}
           />
 
           {/* 🔥 Home은 Tab 화면 */}
