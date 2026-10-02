@@ -192,13 +192,14 @@ const LoginScreen = ({ navigation }) => {
           <View style={[styles.deco, styles.decoTopLeft]} />
           <View style={[styles.deco, styles.decoRight]} />
           <View style={[styles.deco, styles.decoBottomLeft]} />
-          <View style={styles.heroCard}>
-            <Image
-              source={require("../assets/login_hero.jpg")}
-              style={styles.heroImage}
-              resizeMode="cover"
-            />
-          </View>
+          {/* 뒤쪽 둥근 카드 */}
+          <View style={styles.heroCard} />
+          {/* 선수 이미지 (카드 위로 튀어나오게) */}
+          <Image
+            source={require("../assets/login_hero.png")}
+            style={styles.heroImage}
+            resizeMode="contain"
+          />
         </View>
 
         {/* 문구 */}
@@ -347,16 +348,26 @@ const styles = StyleSheet.create({
   heroWrap: {
     alignSelf: "center",
     width: "88%",
-    aspectRatio: 379 / 364,
+    aspectRatio: 1,
     marginTop: 40,
   },
   heroCard: {
-    flex: 1,
+    position: "absolute",
+    top: "14%",
+    left: "6%",
+    right: "6%",
+    bottom: "4%",
     borderRadius: 40,
-    overflow: "hidden",
     backgroundColor: COLORS.card,
   },
-  heroImage: { width: "100%", height: "100%" },
+  heroImage: {
+    position: "absolute",
+    top: 0,
+    left: "-4%",
+    width: "108%",
+    height: "100%",
+    zIndex: 1,
+  },
 
   // 장식 원
   deco: { position: "absolute", borderRadius: 999, zIndex: 2 },
@@ -364,22 +375,22 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     backgroundColor: COLORS.text,
-    top: -28,
-    left: 4,
+    top: "4%",
+    left: "4%",
   },
   decoRight: {
     width: 22,
     height: 22,
     backgroundColor: COLORS.dotAccent,
-    top: "55%",
-    right: -11,
+    top: "52%",
+    right: "1%",
   },
   decoBottomLeft: {
     width: 14,
     height: 14,
     backgroundColor: COLORS.text,
-    bottom: 10,
-    left: -7,
+    bottom: "10%",
+    left: "2%",
   },
 
   textBlock: { marginTop: 24 },
