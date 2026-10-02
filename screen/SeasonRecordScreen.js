@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import KboTitle from "../components/KboTitle";
+import TeamLogo from "../components/TeamLogo";
 
 // ===== 디자인 색상 (RankingScreen과 동일) =====
 const COLORS = {
@@ -13,20 +14,6 @@ const COLORS = {
     divider: "#2C2C3E",
     accent: "#E8826B",
     rowDirect: "#1E2A4A",
-};
-
-// 팀 대표 색상 (로고 대신 작은 원으로 표시)
-const TEAM_COLORS = {
-    LG: "#C30037",
-    두산: "#131230",
-    SSG: "#CE0E2D",
-    롯데: "#041E42",
-    삼성: "#074CA1",
-    KIA: "#EA0029",
-    한화: "#FF6600",
-    KT: "#000000",
-    NC: "#315288",
-    키움: "#570514",
 };
 
 // 내부 데이터 (영어 key 유지)
@@ -164,12 +151,7 @@ export default function SeasonRecordScreen({ navigation }) {
                             <Text style={[styles.cell, styles.colRank]}>{i + 1}</Text>
                             <View style={styles.colName}>
                                 {isTeam && (
-                                    <View
-                                        style={[
-                                            styles.teamDot,
-                                            { backgroundColor: TEAM_COLORS[teamName] || "#888" },
-                                        ]}
-                                    />
+                                    <TeamLogo team={teamName} size={22} style={styles.teamDot} />
                                 )}
                                 <Text style={styles.nameText} numberOfLines={1}>
                                     {item.name}
@@ -177,12 +159,7 @@ export default function SeasonRecordScreen({ navigation }) {
                             </View>
                             {!isTeam && (
                                 <View style={[styles.colTeam, styles.teamCell]}>
-                                    <View
-                                        style={[
-                                            styles.teamDot,
-                                            { backgroundColor: TEAM_COLORS[teamName] || "#888" },
-                                        ]}
-                                    />
+                                    <TeamLogo team={teamName} size={22} style={styles.teamDot} />
                                     <Text style={styles.teamText}>{teamName}</Text>
                                 </View>
                             )}
@@ -287,7 +264,7 @@ const styles = StyleSheet.create({
     colValue: { width: 64, textAlign: "right" },
 
     teamCell: { flexDirection: "row", alignItems: "center", justifyContent: "center" },
-    teamDot: { width: 10, height: 10, borderRadius: 5, marginRight: 6 },
+    teamDot: { marginRight: 6 },
     nameText: { color: COLORS.text, fontSize: 14, flexShrink: 1 },
     teamText: { color: COLORS.subText, fontSize: 13 },
     valueText: { color: COLORS.accent, fontSize: 15, fontWeight: "700" },

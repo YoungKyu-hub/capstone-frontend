@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import KboTitle from "../components/KboTitle";
+import TeamLogo from "../components/TeamLogo";
 
 // ===== 디자인 색상 (피그마 Standings Detail 기준) =====
 const COLORS = {
@@ -20,21 +21,6 @@ const COLORS = {
     pill: "#E8826B",
     rowDirect: "#1E2A4A", // 1~3위: 준플레이오프 직행 이상
     rowWildcard: "#3A1E1E", // 4~5위: 와일드카드
-};
-
-// 팀 대표 색상 (로고 대신 작은 원으로 표시)
-const TEAM_COLORS = {
-    LG: "#C30037",
-    두산: "#131230",
-    SSG: "#CE0E2D",
-    롯데: "#041E42",
-    삼성: "#074CA1",
-    KIA: "#EA0029",
-    기아: "#EA0029",
-    한화: "#FF6600",
-    KT: "#000000",
-    NC: "#315288",
-    키움: "#570514",
 };
 
 // ===== 2026 시즌 데이터 =====
@@ -98,12 +84,7 @@ function RankingScreen({ navigation }) {
             <View style={[styles.row, rowStyle]}>
                 <Text style={[styles.cell, styles.colRank]}>{item.rank}</Text>
                 <View style={styles.colTeam}>
-                    <View
-                        style={[
-                            styles.teamDot,
-                            { backgroundColor: TEAM_COLORS[item.team] || "#888" },
-                        ]}
-                    />
+                    <TeamLogo team={item.team} size={24} style={styles.teamDot} />
                     <Text style={styles.teamName} numberOfLines={1}>
                         {item.team}
                     </Text>
@@ -309,7 +290,7 @@ const styles = StyleSheet.create({
     colRate: { width: 44 },
     colGb: { width: 32 },
 
-    teamDot: { width: 12, height: 12, borderRadius: 6, marginRight: 8 },
+    teamDot: { marginRight: 8 },
     teamName: { color: COLORS.text, fontSize: 14, flexShrink: 1 },
 
     // 범례

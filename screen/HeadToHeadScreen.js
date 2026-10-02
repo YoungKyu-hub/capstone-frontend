@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import KboTitle from "../components/KboTitle";
+import TeamLogo from "../components/TeamLogo";
 
 // ===== 디자인 색상 (RankingScreen과 동일) =====
 const COLORS = {
@@ -13,20 +14,6 @@ const COLORS = {
     divider: "#2C2C3E",
     accent: "#E8826B",
     rowDirect: "#1E2A4A",
-};
-
-// 팀 대표 색상 (로고 대신 작은 원으로 표시)
-const TEAM_COLORS = {
-    LG: "#C30037",
-    두산: "#131230",
-    SSG: "#CE0E2D",
-    롯데: "#041E42",
-    삼성: "#074CA1",
-    KIA: "#EA0029",
-    한화: "#FF6600",
-    KT: "#000000",
-    NC: "#315288",
-    키움: "#570514",
 };
 
 const teams = ["LG", "두산", "SSG", "롯데", "삼성", "KIA", "NC", "한화", "키움", "KT"];
@@ -51,12 +38,7 @@ function TeamPicker({ label, selected, onSelect }) {
                             onPress={() => onSelect(t)}
                             style={[styles.chip, active && styles.chipActive]}
                         >
-                            <View
-                                style={[
-                                    styles.teamDot,
-                                    { backgroundColor: TEAM_COLORS[t] || "#888" },
-                                ]}
-                            />
+                            <TeamLogo team={t} size={20} style={styles.teamDot} />
                             <Text style={styles.chipText}>{t}</Text>
                         </TouchableOpacity>
                     );
@@ -71,12 +53,7 @@ function TeamBadge({ team }) {
     return (
         <View style={styles.badge}>
             <View style={styles.badgeCircle}>
-                <View
-                    style={[
-                        styles.badgeInner,
-                        { backgroundColor: TEAM_COLORS[team] || "#888" },
-                    ]}
-                />
+                <TeamLogo team={team} size={52} />
             </View>
             <Text style={styles.badgeName}>{team}</Text>
         </View>
@@ -238,7 +215,7 @@ const styles = StyleSheet.create({
     },
     chipActive: { backgroundColor: COLORS.accent },
     chipText: { color: COLORS.text, fontSize: 14, fontWeight: "700" },
-    teamDot: { width: 10, height: 10, borderRadius: 5, marginRight: 6 },
+    teamDot: { marginRight: 6 },
 
     compareBtn: {
         height: 48,
@@ -267,7 +244,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-    badgeInner: { width: 32, height: 32, borderRadius: 16 },
     badgeName: { color: COLORS.text, fontSize: 18, fontWeight: "700", marginTop: 10 },
     vsText: { color: COLORS.accent, fontSize: 20, fontWeight: "700" },
 

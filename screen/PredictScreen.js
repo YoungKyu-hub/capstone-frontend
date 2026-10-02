@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import KboTitle from "../components/KboTitle";
+import TeamLogo from "../components/TeamLogo";
 
 // ===== 디자인 색상 (RankingScreen과 동일) =====
 const COLORS = {
@@ -22,20 +23,6 @@ const COLORS = {
     divider: "#2C2C3E",
     accent: "#E8826B",
     rowDirect: "#1E2A4A",
-};
-
-// 팀 대표 색상 (로고 대신 원으로 표시)
-const TEAM_COLORS = {
-    LG: "#C30037",
-    두산: "#131230",
-    SSG: "#CE0E2D",
-    롯데: "#041E42",
-    삼성: "#074CA1",
-    KIA: "#EA0029",
-    한화: "#FF6600",
-    KT: "#000000",
-    NC: "#315288",
-    키움: "#570514",
 };
 
 const dateList = ["4/13", "4/14", "4/15", "4/16"];
@@ -71,12 +58,7 @@ function TeamBadge({ team, side }) {
     return (
         <View style={styles.badge}>
             <View style={styles.badgeCircle}>
-                <View
-                    style={[
-                        styles.badgeInner,
-                        { backgroundColor: TEAM_COLORS[team] || "#888" },
-                    ]}
-                />
+                <TeamLogo team={team} size={44} />
             </View>
             <Text style={styles.badgeName}>{team}</Text>
             <Text style={styles.badgeSide}>{side}</Text>
@@ -347,7 +329,6 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-    badgeInner: { width: 26, height: 26, borderRadius: 13 },
     badgeName: { color: COLORS.text, fontSize: 17, fontWeight: "700", marginTop: 8 },
     badgeSide: { color: COLORS.subText, fontSize: 11, marginTop: 2 },
     vsText: { color: COLORS.accent, fontSize: 18, fontWeight: "700" },

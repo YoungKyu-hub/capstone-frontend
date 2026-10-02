@@ -10,6 +10,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import KboTitle from "../components/KboTitle";
+import TeamLogo from "../components/TeamLogo";
 
 // ===== 디자인 색상 (RankingScreen과 동일) =====
 const COLORS = {
@@ -23,20 +24,6 @@ const COLORS = {
     rowDirect: "#1E2A4A",
     sunday: "#FF7A7A",
     saturday: "#7AA8FF",
-};
-
-// 팀 대표 색상 (로고 대신 작은 원으로 표시)
-const TEAM_COLORS = {
-    LG: "#C30037",
-    두산: "#131230",
-    SSG: "#CE0E2D",
-    롯데: "#041E42",
-    삼성: "#074CA1",
-    KIA: "#EA0029",
-    한화: "#FF6600",
-    KT: "#000000",
-    NC: "#315288",
-    키움: "#570514",
 };
 
 // 경기 데이터
@@ -79,9 +66,7 @@ const formatDate = (date) => {
 function TeamName({ team }) {
     return (
         <View style={styles.teamWrap}>
-            <View
-                style={[styles.teamDot, { backgroundColor: TEAM_COLORS[team] || "#888" }]}
-            />
+            <TeamLogo team={team} size={22} style={styles.teamDot} />
             <Text style={styles.teamText}>{team}</Text>
         </View>
     );
@@ -174,12 +159,7 @@ export default function ScheduleScreen() {
                                 style={[styles.filterBtn, active && styles.filterActive]}
                             >
                                 {t !== "ALL" && (
-                                    <View
-                                        style={[
-                                            styles.teamDot,
-                                            { backgroundColor: TEAM_COLORS[t] || "#888" },
-                                        ]}
-                                    />
+                                    <TeamLogo team={t} size={22} style={styles.teamDot} />
                                 )}
                                 <Text style={styles.filterBtnText}>
                                     {t === "ALL" ? "전체" : t}
@@ -435,7 +415,7 @@ const styles = StyleSheet.create({
 
     // 팀 표시
     teamWrap: { flexDirection: "row", alignItems: "center" },
-    teamDot: { width: 10, height: 10, borderRadius: 5, marginRight: 6 },
+    teamDot: { marginRight: 6 },
     teamText: { color: COLORS.text, fontSize: 17, fontWeight: "700" },
 
     // 팝업
